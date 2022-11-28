@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:14.3-alpine3.16
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_USER: my_app
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: my_app
