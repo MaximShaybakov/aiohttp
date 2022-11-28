@@ -24,9 +24,6 @@ class User(Base):
     email = Column(String(30), nullable=True)
     advertisements = relationship('Ads', back_populates="owner")
 
-    def __repr__(self):
-        return f'User "{self.name}"'
-
 
 class Token(Base):
 

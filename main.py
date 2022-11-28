@@ -1,10 +1,12 @@
+import json
+
 from aiohttp import web
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from config import PG_DSN
 from typing import Callable, Awaitable
-from models import Base, User, Token, Ads
-from auth import hash_password, check_password
+from models import Base, User   # Token, Ads
+from auth import hash_password   # check_password
 
 engine = create_async_engine(PG_DSN)
 Session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
@@ -31,6 +33,20 @@ async def app_context(app: web.Application):
     await engine.dispose()
 
 
+def raise_error(exception_class, message):
+    raise exception_class(
+        test=json.dumps({'status': 'error', 'message': message}),
+        content_type='application/json'
+    )
+
+
+async def get_orm_item(orm_class, object_id, sessions):
+    item = await sessions.get(orm_class, object_id)
+    if item is None:
+        raise raise_error(web.HTTPNotFound, f'{orm_class.__name__} not found')
+    return item
+
+
 async def login(request: web.Request):
     return web.json_response({})
 
@@ -39,10 +55,12 @@ class UsersView(web.View):
     ''' GET, CREATE, PATCH, DELETE users '''
 
     async def get(self, user_id: int):
-        return web.json_response({})
+        user_id = int(self.request.match_info['user_id'])
+        user = await get_orm_item(User, user_id, self.request['session'])
+        return web.json_response({'id': user.id, 'name': user.name})
 
     async def post(self):
-        user_data = self.request.json()
+        user_data = await self.request.json()
         user_data['password'] = hash_password(user_data['password'])
         new_user = User(**user_data)
         self.request['session'].add(new_user)
@@ -64,7 +82,8 @@ my_app.cleanup_ctx.append(app_context)
 
 
 my_app.add_routes([
-    web.post('/users/', UsersView)])
+    web.post('/users/', UsersView),
+    web.get('/users/<user_id:int>', UsersView)])
 
 if __name__ == '__main__':
     web.run_app(my_app, host='127.0.0.1', port=8080, shutdown_timeout=10.0)

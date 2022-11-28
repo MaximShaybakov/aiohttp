@@ -13,10 +13,9 @@ class ApiError(Exception):
         self.message = message
 
 
-def basic_request(method: Literal['get', 'post', 'patch', 'delete'], path: str, **kwargs) -> dict | str:
-
+def basic_request(method: Literal['get', 'post', 'patch', 'delete'], path: str, **kwargs) -> dict:
     method = getattr(session, method)
-    response = method(f'{API_URL}/{path}', **kwargs)
+    response = method(f'{API_URL}{path}', **kwargs)
     if response.status_code >= 400:
         try:
             message = response.json()
@@ -26,5 +25,12 @@ def basic_request(method: Literal['get', 'post', 'patch', 'delete'], path: str, 
     return response.json()
 
 
-def create_user(name: str, password: str):
-    return basic_request('post', '/users/', json={'name': name, 'password': password})
+def create_user(name: str, admin: bool, password: str, email: str):
+    return basic_request('post', '/users/', json={'name': name,
+                                                  'admin': admin,
+                                                  'password': password,
+                                                  'email': email})
+
+
+def get_user(user_id: int):
+    return basic_request('get', f'/users/{user_id}')
