@@ -15,5 +15,4 @@ def test_create_user():
 
 def test_get_user(root_user):
     user = api.get_user(root_user['id'])
-    print(user)
     assert user['name'] == root_user['name']

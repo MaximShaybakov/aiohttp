@@ -5,8 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from config import PG_DSN
 from typing import Callable, Awaitable
-from models import Base, User   # Token, Ads
-from auth import hash_password   # check_password
+from models import Base, User  # Token, Ads
+from auth import hash_password  # check_password
 
 engine = create_async_engine(PG_DSN)
 Session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
@@ -16,9 +16,7 @@ Session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 async def session_middleware(request: web.Request, handler: Callable[[web.Request], Awaitable[web.Response]]):
     async with Session() as session:
         request['session'] = session
-        response = await handler(request)
-        # await session.commit()
-        return response
+        return await handler(request)
 
 
 async def app_context(app: web.Application):
@@ -80,10 +78,12 @@ class UsersView(web.View):
 my_app = web.Application(middlewares=[session_middleware])
 my_app.cleanup_ctx.append(app_context)
 
-
-my_app.add_routes([
-    web.post('/users/', UsersView),
-    web.get('/users/<user_id:int>', UsersView)])
+my_app.add_routes(
+    [
+        web.post('/users/', UsersView),
+        web.get('/users/{user_id:int}', UsersView)
+    ]
+)
 
 if __name__ == '__main__':
-    web.run_app(my_app, host='127.0.0.1', port=8080, shutdown_timeout=10.0)
+    web.run_app(my_app, host='127.0.0.1', port=8080)
