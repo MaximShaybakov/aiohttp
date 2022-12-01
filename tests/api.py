@@ -34,3 +34,9 @@ def create_user(name: str, admin: bool, password: str, email: str):
 
 def get_user(user_id: int):
     return basic_request('get', f'/users/{user_id}')
+
+
+def patch_user(user_id: int, patch: dict):
+    return basic_request('patch', f'/users/{user_id}', json=patch)
+
+

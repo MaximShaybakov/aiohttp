@@ -33,7 +33,7 @@ async def app_context(app: web.Application):
 
 def raise_error(exception_class, message):
     raise exception_class(
-        test=json.dumps({'status': 'error', 'message': message}),
+        text=json.dumps({'status': 'error', 'message': message}),
         content_type='application/json'
     )
 
@@ -52,7 +52,7 @@ async def login(request: web.Request):
 class UsersView(web.View):
     ''' GET, CREATE, PATCH, DELETE users '''
 
-    async def get(self, user_id: int):
+    async def get(self):
         user_id = int(self.request.match_info['user_id'])
         user = await get_orm_item(User, user_id, self.request['session'])
         return web.json_response({'id': user.id, 'name': user.name})
@@ -68,7 +68,16 @@ class UsersView(web.View):
             'id': new_user.id
         })
 
-    async def patch(self, user_id):
+    async def patch(self):
+        user_id = int(self.request.match_info['user_id'])
+        user = await get_orm_item(User, user_id, self.request['session'])
+        user_data = await self.request.json()
+        if 'password' in user_data:
+            user_data['password'] = hash_password(user_data['password'])
+        for field, value in user_data.items():
+            setattr(user, field, value)
+        self.request['session'].add(user)
+        await self.request['session'].commit()
         return web.json_response({})
 
     async def delete(self, user_id: int):
@@ -81,7 +90,8 @@ my_app.cleanup_ctx.append(app_context)
 my_app.add_routes(
     [
         web.post('/users/', UsersView),
-        web.get('/users/{user_id:int}', UsersView)
+        web.get('/users/{user_id:\d+}', UsersView),
+        web.patch('/users/{user_id:\d+}', UsersView),
     ]
 )
 
