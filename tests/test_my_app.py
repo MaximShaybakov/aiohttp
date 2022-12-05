@@ -51,3 +51,8 @@ def test_delete_user(new_user: int):
 
 def test_delete_user_non_existed(new_user: int):
     pass
+
+
+def test_login(new_user):
+    token = api.login(new_user['name'], new_user['password'])
+    print(token)

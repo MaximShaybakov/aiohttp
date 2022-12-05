@@ -1,12 +1,12 @@
 import json
-
+from sqlalchemy.future import select
 from aiohttp import web
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from config import PG_DSN
 from typing import Callable, Awaitable
-from models import Base, User  # Token, Ads
-from auth import hash_password  # check_password
+from models import Base, User, Token  # Ads
+from auth import hash_password, check_password
 
 engine = create_async_engine(PG_DSN)
 Session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
@@ -47,7 +47,15 @@ async def get_orm_item(orm_class, object_id, sessions):
 
 async def login(request: web.Request):
     user_data = await request.json()
-    return web.json_response({})
+    query = select(User).where(User.name == user_data['name'])
+    result = await request['session'].execute(query)
+    user = result.scalar()
+    if not user or not check_password(user_data['password'], user.password):
+        raise raise_error(web.HTTPUnauthorized, message='user or password is incorrect')
+    token = Token(user=user)
+    request['session'].add(token)
+    await request['session'].commit()
+    return web.json_response({'status': 'success', 'token': token.id})
 
 
 class UsersView(web.View):
@@ -94,7 +102,7 @@ my_app.cleanup_ctx.append(app_context)
 
 my_app.add_routes(
     [
-        web.get('login', login),
+        web.post('/login', login),
         web.post('/users/', UsersView),
         web.get('/users/{user_id:\d+}', UsersView),
         web.patch('/users/{user_id:\d+}', UsersView),

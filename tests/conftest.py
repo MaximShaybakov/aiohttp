@@ -4,6 +4,7 @@ from models import Base, User
 from config import PG_DB, PG_PORT, PG_HOST, PG_USER, PG_PASSWORD
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from auth import hash_password
 
 
 engine = create_engine(f'postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DB}')
@@ -27,7 +28,7 @@ def root_user():
             'id': new_user.id,
             'name': new_user.name,
             'admin': new_user.admin,
-            'password': new_user.password,
+            'password': hash_password(new_user.password),
             'email': new_user.email
         }
 
@@ -45,6 +46,6 @@ def new_user():
             'id': new_user.id,
             'name': new_user.name,
             'admin': new_user.admin,
-            'password': new_user.password,
+            'password': hash_password(new_user.password),
             'email': new_user.email
         }

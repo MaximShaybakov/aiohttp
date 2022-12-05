@@ -42,3 +42,7 @@ def patch_user(user_id: int, patch: dict):
 
 def delete_user(user_id: int):
     return basic_request('delete', f'/users/{user_id}')
+
+
+def login(name: str, password: str):
+    return basic_request('post', '/login', json={'name': name, 'password': password})
