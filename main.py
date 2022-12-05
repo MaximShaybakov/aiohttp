@@ -46,6 +46,7 @@ async def get_orm_item(orm_class, object_id, sessions):
 
 
 async def login(request: web.Request):
+    user_data = await request.json()
     return web.json_response({})
 
 
@@ -78,10 +79,14 @@ class UsersView(web.View):
             setattr(user, field, value)
         self.request['session'].add(user)
         await self.request['session'].commit()
-        return web.json_response({})
+        return web.json_response({'status': 'success'})
 
-    async def delete(self, user_id: int):
-        return web.json_response({})
+    async def delete(self):
+        user_id = int(self.request.match_info['user_id'])
+        user = await get_orm_item(User, user_id, self.request['session'])
+        await self.request['session'].delete(user)
+        await self.request['session'].commit()
+        return web.json_response({'status': 'delete'})
 
 
 my_app = web.Application(middlewares=[session_middleware])
@@ -89,9 +94,11 @@ my_app.cleanup_ctx.append(app_context)
 
 my_app.add_routes(
     [
+        web.get('login', login),
         web.post('/users/', UsersView),
         web.get('/users/{user_id:\d+}', UsersView),
         web.patch('/users/{user_id:\d+}', UsersView),
+        web.delete('/users/{user_id:\d+}', UsersView),
     ]
 )
 

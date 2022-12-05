@@ -35,7 +35,10 @@ def root_user():
 @pytest.fixture(scope='session', autouse=True)
 def new_user():
     with Session() as session:
-        new_user = User(name=f'gorshok_{datetime.now().time()}', admin=False, password='iamgorshenyov', email='king&jester@mail.ru')
+        new_user = User(name=f'gorshok_{datetime.now().time()}',
+                        admin=False,
+                        password='iamgorshenyov',
+                        email='king&jester@mail.ru')
         session.add(new_user)
         session.commit()
         return {

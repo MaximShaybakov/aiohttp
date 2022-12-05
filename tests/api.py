@@ -40,3 +40,5 @@ def patch_user(user_id: int, patch: dict):
     return basic_request('patch', f'/users/{user_id}', json=patch)
 
 
+def delete_user(user_id: int):
+    return basic_request('delete', f'/users/{user_id}')

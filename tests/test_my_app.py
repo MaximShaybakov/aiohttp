@@ -23,13 +23,31 @@ def test_user_non_existed():
     with pytest.raises(api.ApiError) as err_info:
         api.get_user(999999)
     assert err_info.value.status_code == 404
+    assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
 
 
 def test_patch_user(new_user):
-    user = api.patch_user(new_user['id'], patch={'name': 'vasja',
-                                                 'admin': False,
-                                                 'password': '1234',
-                                                 'email': None})
+    response = api.patch_user(new_user['id'], patch={'name': 'vasja',
+                                                     'admin': False,
+                                                     'password': '1234',
+                                                     'email': None})
+    assert response == {'status': 'success'}
     user = api.get_user(new_user['id'])
     assert user['name'] == 'vasja'
 
+
+def test_patch_user_non_existed(new_user):
+    pass
+
+
+def test_delete_user(new_user: int):
+    response = api.delete_user(new_user['id'])
+    assert response == {'status': 'delete'}
+    with pytest.raises(api.ApiError) as err_info:
+        api.get_user(new_user['id'])
+    assert err_info.value.status_code == 404
+    assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
+
+
+def test_delete_user_non_existed(new_user: int):
+    pass
