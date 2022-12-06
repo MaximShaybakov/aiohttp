@@ -29,7 +29,7 @@ class Token(Base):
 
     __tablename__ = 'tokens'
 
-    id = Column(UUID, primary_key=True)
+    id = Column(UUID, primary_key=True, server_default=func.uuid_generate_v4())
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
     user = relationship('User', lazy='joined')
     created = Column(DateTime, server_default=func.now())

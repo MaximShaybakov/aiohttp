@@ -21,14 +21,14 @@ def cleanup_database():
 @pytest.fixture(scope='session')
 def root_user():
     with Session() as session:
-        new_user = User(name='root', admin=True, password='root', email='root@mail.ru')
+        new_user = User(name='root', admin=True, password=hash_password('toor'), email='root@mail.ru')
         session.add(new_user)
         session.commit()
         return {
             'id': new_user.id,
             'name': new_user.name,
             'admin': new_user.admin,
-            'password': hash_password(new_user.password),
+            'password': 'toor',
             'email': new_user.email
         }
 
@@ -38,7 +38,7 @@ def new_user():
     with Session() as session:
         new_user = User(name=f'gorshok_{datetime.now().time()}',
                         admin=False,
-                        password='iamgorshenyov',
+                        password=hash_password('iamgorshenyov'),
                         email='king&jester@mail.ru')
         session.add(new_user)
         session.commit()
@@ -46,6 +46,6 @@ def new_user():
             'id': new_user.id,
             'name': new_user.name,
             'admin': new_user.admin,
-            'password': hash_password(new_user.password),
+            'password': 'iamgorshenyov',
             'email': new_user.email
         }

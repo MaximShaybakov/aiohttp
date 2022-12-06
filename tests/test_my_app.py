@@ -1,3 +1,5 @@
+import datetime
+import time
 import requests
 import pytest
 from tests.config import API_URL
@@ -41,7 +43,8 @@ def test_patch_user_non_existed(new_user):
 
 
 def test_delete_user(new_user: int):
-    response = api.delete_user(new_user['id'])
+    token = api.login(new_user['name'], new_user['password'])['token']
+    response = api.delete_user(new_user['id'], token=token)
     assert response == {'status': 'delete'}
     with pytest.raises(api.ApiError) as err_info:
         api.get_user(new_user['id'])
@@ -54,5 +57,5 @@ def test_delete_user_non_existed(new_user: int):
 
 
 def test_login(new_user):
-    token = api.login(new_user['name'], new_user['password'])
-    print(token)
+    token = api.login(new_user['name'], new_user['password'])['token']
+    assert isinstance(token, str)
