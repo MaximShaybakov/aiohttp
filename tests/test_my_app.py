@@ -1,5 +1,3 @@
-import datetime
-import time
 import requests
 import pytest
 from tests.config import API_URL
@@ -39,10 +37,17 @@ def test_patch_user(new_user):
 
 
 def test_patch_user_non_existed(new_user):
-    pass
+    token = api.login(new_user['name'], new_user['password'])['token']
+    if token:
+        with pytest.raises(api.ApiError) as err_info:
+            api.patch_user(9999999, patch={'name': 'vasja',
+                                           'password': '1234',
+                                           'email': None})
+        assert err_info.value.status_code == 404
+        assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
 
 
-def test_delete_user(new_user: int):
+def test_delete_user(new_user):
     token = api.login(new_user['name'], new_user['password'])['token']
     response = api.delete_user(new_user['id'], token=token)
     assert response == {'status': 'delete'}
@@ -52,8 +57,11 @@ def test_delete_user(new_user: int):
     assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
 
 
-def test_delete_user_non_existed(new_user: int):
-    pass
+def test_delete_user_non_existed():
+    with pytest.raises(api.ApiError) as err_info:
+        api.delete_user(99999, token='jhfhjcvnm,n7687ghvjh')
+    assert err_info.value.status_code == 404
+    assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
 
 
 def test_login(new_user):
