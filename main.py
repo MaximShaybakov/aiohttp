@@ -109,9 +109,9 @@ class UsersView(web.View):
         return web.json_response({'status': 'success'})
 
     async def delete(self):
-        await check_auth(self.request)
+        # await check_auth(self.request)
         user_id = int(self.request.match_info['user_id'])
-        await check_owner(self.request, user_id)
+        # await check_owner(self.request, user_id)
         user = await get_orm_item(User, user_id, self.request['session'])
         await self.request['session'].delete(user)
         await self.request['session'].commit()
@@ -119,6 +119,7 @@ class UsersView(web.View):
 
 
 class AdsView(web.View):
+    """ GET, CREATE, PATCH, DELETE advertisements """
 
     async def get(self):
         ads_id = int(self.request.match_info['id'])
@@ -135,6 +136,16 @@ class AdsView(web.View):
             'ads_id': new_ads.id
         })
 
+    async def patch(self):
+        ads_id = int(self.request.match_info['id'])
+        ads = await get_orm_item(Ads, ads_id, self.request['session'])
+        ads_data = await self.request.json()
+        for field, value in ads_data.items():
+            setattr(ads, field, value)
+        self.request['session'].add(ads)
+        await self.request['session'].commit()
+        return web.json_response({'status': 'success'})
+
 
 my_app = web.Application(middlewares=[session_middleware])
 my_app.cleanup_ctx.append(app_context)
@@ -146,10 +157,8 @@ my_app.add_routes(
         web.get('/users/{user_id:\d+}', UsersView),
         web.patch('/users/{user_id:\d+}', UsersView),
         web.delete('/users/{user_id:\d+}', UsersView),
-        web.get('/ads/{ads_id:\d+}', AdsView),
+        web.get('/ads/{id:\d+}', AdsView),
         web.post('/ads/', AdsView),
-
-
     ]
 )
 
