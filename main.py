@@ -78,7 +78,7 @@ async def login(request: web.Request):
 
 
 class UsersView(web.View):
-    ''' GET, CREATE, PATCH, DELETE users '''
+    """ GET, CREATE, PATCH, DELETE users """
 
     async def get(self):
         user_id = int(self.request.match_info['user_id'])
