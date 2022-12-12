@@ -57,11 +57,13 @@ def test_delete_user(new_user):
     assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
 
 
-def test_delete_user_non_existed():
+def test_delete_user_non_existed(new_user):
+    token = api.login(new_user['name'], new_user['password'])['token']
     with pytest.raises(api.ApiError) as err_info:
-        api.delete_user(99999, token='jhfhjcvnm,n7687ghvjh')
-    assert err_info.value.status_code == 404
-    assert err_info.value.message == {'status': 'error', 'message': 'User not found'}
+        api.delete_user(new_user['id'] + 999999, token=token)
+    assert err_info.value.status_code == 403
+    assert err_info.value.message == {'message': 'token incorrect', 'status': 'error'}
+
 
 
 def test_login(new_user):

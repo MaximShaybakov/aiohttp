@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from config import PG_DSN, TOKEN_TTL
 from typing import Callable, Awaitable
-from models import Base, User, Token  # Ads
+from models import Base, User, Token, Ads
 from auth import hash_password, check_password
 
 engine = create_async_engine(PG_DSN)
@@ -118,6 +118,24 @@ class UsersView(web.View):
         return web.json_response({'status': 'delete'})
 
 
+class AdsView(web.View):
+
+    async def get(self):
+        ads_id = int(self.request.match_info['id'])
+        ads = await get_orm_item(Ads, ads_id, self.request['session'])
+        return web.json_response({'id': ads.id, 'title': ads.title})
+
+    async def post(self):
+        ads_data = await self.request.json()
+        new_ads = Ads(**ads_data)
+        self.request['session'].add(new_ads)
+        await self.request['session'].commit()
+        return web.json_response({
+            'status': 'OK',
+            'ads_id': new_ads.id
+        })
+
+
 my_app = web.Application(middlewares=[session_middleware])
 my_app.cleanup_ctx.append(app_context)
 
@@ -128,6 +146,10 @@ my_app.add_routes(
         web.get('/users/{user_id:\d+}', UsersView),
         web.patch('/users/{user_id:\d+}', UsersView),
         web.delete('/users/{user_id:\d+}', UsersView),
+        web.get('/ads/{ads_id:\d+}', AdsView),
+        web.post('/ads/', AdsView),
+
+
     ]
 )
 

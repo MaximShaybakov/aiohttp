@@ -18,6 +18,7 @@ def cleanup_database():
     yield
 
 
+
 @pytest.fixture(scope='session')
 def root_user():
     with Session() as session:
