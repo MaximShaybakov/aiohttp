@@ -146,6 +146,15 @@ class AdsView(web.View):
         await self.request['session'].commit()
         return web.json_response({'status': 'success'})
 
+    async def delete(self):
+        # await check_auth(self.request)
+        ads_id = int(self.request.match_info['id'])
+        # await check_owner(self.request, user_id)
+        ads = await get_orm_item(Ads, ads_id, self.request['session'])
+        await self.request['session'].delete(ads)
+        await self.request['session'].commit()
+        return web.json_response({'status': 'delete'})
+
 
 my_app = web.Application(middlewares=[session_middleware])
 my_app.cleanup_ctx.append(app_context)
@@ -159,6 +168,8 @@ my_app.add_routes(
         web.delete('/users/{user_id:\d+}', UsersView),
         web.get('/ads/{id:\d+}', AdsView),
         web.post('/ads/', AdsView),
+        web.patch('/ads/{id:\d+}', AdsView),
+        web.delete('/ads/{id:\d+}', AdsView),
     ]
 )
 
